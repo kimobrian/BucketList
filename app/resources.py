@@ -1,50 +1,66 @@
 from flask_restful import Resource
 from functools import wraps
-from app.models import User, BucketLists, BucketListItem
+from app.models import User, BucketList, BucketListItem
 from datetime import datetime, timedelta
+from flask_restful import reqparse
 
 
 def create_token(user):
-    payload = {
-        'sub': user.id,
-        'iat': datetime.utcnow(),
-        'exp': datetime.utcnow() + timedelta(minutes=1)
-    }
-    token = jwt.encode(payload, 'secret', algorithm='HS256')
-    return token.decode('unicode_escape')
-
+    '''Create JSON authentication token'''
+    pass
 
 def parse_token(req):
-    token = req.headers.get('Authorization')
-    return jwt.decode(token, 'secret')
-
+    '''Decode JSON authentication token'''
+    pass
 
 def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not request.headers.get('Authorization'):
-            response = jsonify(message='Missing authorization header')
-            response.status_code = 401  # Unauthorized access
-            return response
+    '''Decorator to control API access'''
+    pass
 
-        try:
-            payload = parse_token(request)
-        except DecodeError:
-            response = jsonify(message='Token is invalid')
-            response.status_code = 401
-            return response
-        except ExpiredSignature:
-            response = jsonify(message='Token has expired')
-            response.status_code = 401
-            return response
+class Login(Resource):
+    '''Login Controller'''
 
-        g.user_id = payload['sub']
+    def post(self):
+        '''Login user'''
+        pass
 
-        return f(*args, **kwargs)
+class Register(Resource):
+    '''Register user'''
 
-    return decorated_function
+    def post(self):
+        '''Register User'''
+        pass
 
+class BucketListsAction(Resource):
+    '''Bucketlists controller'''
 
-class HelloWorld(Resource):
-    def get(self):
-        return 'Hello world'
+    def get(self, id):
+        '''List all the created bucket lists'''
+        '''Get single bucket list if Id is provided'''
+        pass
+
+    def post(self):
+        '''Create a new bucket list'''
+        pass
+
+    def put(self, id):
+        '''Update this bucket list'''
+        pass
+
+    def delete(self, id):
+        '''Delete this single bucket list'''
+        pass
+
+class BucketListItemAction(Resource):
+    """Bucketlists Items controller """
+    def post(self, id):
+        '''Create a new item in bucket list'''
+        pass
+
+    def put(self, bucketlist_id, item_id):
+        '''Update a bucket list item'''
+        pass
+
+    def delete(self, bucketlist_id, item_id):
+        '''Delete an item in a bucket list'''
+        pass

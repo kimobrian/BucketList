@@ -1,6 +1,7 @@
 from app.resources import Login, Register, BucketListsAction, BucketListItemAction
 from setup_tests import BaseTestSetup
 from flask import jsonify
+import json
 
 
 class EndpointTests(BaseTestSetup):
@@ -14,12 +15,12 @@ class EndpointTests(BaseTestSetup):
 
     def test_user_register_A(self):
         '''Test user registration when email and password are provided'''
-        data = {'email': 'kevin@gmail.com', 'password': 'password123'}
-        response = self.client.post('/auth/register/', data=data)
-        self.assert200(response, message='Registration Failed')
+        data = {'email': 'kevin123@gmail.com', 'password': 'password123'}
+        response = self.client.post('/auth/register/', data=json.dumps(data), content_type='application/json')
+        self.assert200(response, message='Registration Failed'+str(response.status_code))
 
     def test_user_register_B(self):
-        '''Test user registration when email and password are not provided'''
+        '''Test user registration when email or password are not provided'''
         data = {'email': '', 'password': ''}
         response = self.client.post('/auth/register/', data=data)
         self.assert400(response, message='No Registration details provided')
@@ -54,7 +55,7 @@ class EndpointTests(BaseTestSetup):
     def test_for_missing_bucket_list_id(self):
         """Test for retrieval of a bucket list with non-existent id"""
         response = self.client.get('/bucketlists/134/', headers=self.auth_token)
-        self.assert404(response, message='Missing bucket list Id')
+        self.assert400(response, message='Missing bucket list Id')
 
     def test_deletion_of_bucket_list(self):
         '''Test if bucket list has been deleted'''

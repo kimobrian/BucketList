@@ -5,9 +5,9 @@ from nose.tools import assert_equal
 
 class ModelTests(BaseTestSetup):
 
-    def test_user_saved(self):
-        users = User.query.count()
-        assert users == 1
+    def test_user__password(self):
+        user = User('user@yahoo.com','userpass123')
+        self.assertGreater(user.set_password('password'),10)
 
     def test_bucketlist_created(self):
         bucketlists = BucketList.query.count()

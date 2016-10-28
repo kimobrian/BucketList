@@ -17,7 +17,7 @@ class BaseTestSetup(TestCase):
     def setUp(self):
         self.app = self.create_app().test_client()
         db.create_all()
-
+        
         user = User(
             email="brian_kim@gmail.com",
             password="complex_pass"

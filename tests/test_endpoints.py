@@ -1,7 +1,8 @@
-from app.resources import Login, Register, BucketListsAction, BucketListItemAction
+from app.resources import Login, Register, BucketListsAction, BucketListItemAction, create_token, parse_token
 from setup_tests import BaseTestSetup
 from flask import jsonify, url_for
 import json
+from app.models import User
 
 
 class EndpointTests(BaseTestSetup):
@@ -9,7 +10,8 @@ class EndpointTests(BaseTestSetup):
 
     def test_homepage(self):
         response = self.app.get('/')
-        self.assert200(response, message='Request failed with status:'+str(response.status_code))
+        response_data = response.json
+        self.assertEquals(response_data ,{'message': 'Welcome to Bucketlist API'})
 
     def test_login(self):
         '''Test User Login'''
@@ -21,7 +23,7 @@ class EndpointTests(BaseTestSetup):
         '''Test user registration when email and password are provided'''
         data = {'email': 'kevin123@gmail.com', 'password': 'password123'}
         response = self.app.post('/auth/register/', data=json.dumps(data), content_type='application/json')
-        self.assert200(response, message='Registration Failed'+str(response.status_code))
+        self.assertEqual(response.json, {'message': 'Registered Successfully'})
 
     def test_user_register_B(self):
         '''Test user registration when email or password are not provided'''
@@ -85,3 +87,8 @@ class EndpointTests(BaseTestSetup):
         '''Test if bucketlist item was deleted'''
         response = self.app.put('/bucketlists/id/items/item_id/', headers=self.auth_token)
         self.assert200(response, message='Failed to update bucket list item')
+
+    def test_create_token(self):
+        user_details = User.query.filter_by(email='brian_kim@gmail.com').one()
+        token = create_token(user_details)
+        self.assertIsNotNone(token)

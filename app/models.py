@@ -10,6 +10,8 @@ class BaseModel(db.Model):
     date_created = db.Column(db.DateTime, index=True, default=db.func.current_timestamp())
     date_modified = db.Column(db.DateTime, index=True, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
+    def save(self):
+        pass
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -23,10 +25,10 @@ class User(db.Model):
         self.password = password
 
     def set_password(self, password):
-        self.password = pwd_context.encrypt(password)
+        pass
 
     def check_password(self, password):
-        return pwd_context.verify(password, self.password)
+        pass
 
 
 class BucketList(BaseModel):

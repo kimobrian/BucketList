@@ -2,15 +2,15 @@ from app import app, db
 from flask_testing import TestCase
 from app.models import User, BucketList, BucketListItem
 from datetime import datetime
-import glob
-
+from config import config_settings
+import os
+import json
 
 class BaseTestSetup(TestCase):
 
     def create_app(self):
         """Test Configuration"""
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../tests/testdb.sqlite'
-        app.config['TESTING'] = True
+        app.config.from_object(config_settings['testing'])
         return app
 
     def setUp(self):
@@ -18,8 +18,7 @@ class BaseTestSetup(TestCase):
         db.create_all()
 
         user = User(
-            # username="Brian Kimo",
-            email="brian@gmail.com",
+            email="brian_kim@gmail.com",
             password="complex_pass"
         )
 
@@ -44,10 +43,21 @@ class BaseTestSetup(TestCase):
         db.session.add(bucketlist_item)
         db.session.commit()
 
+        rv = self.app.get('/')
+        print(str(rv))
+
+        reg_details = {'email': 'unique@gmail.com', 'password': 'password123'}
+        response = self.app.post('/auth/register/', data=reg_details, content_type="application/json")
         self.auth_token = ''
+        # login_details = {'email': 'unique@gmail.com', 'password': 'password123'}
+        # response = self.app.post('/auth/login/', data=json.dumps(login_details), content_type="application/json")
+        # response_data = response.json
+        # self.auth_token = {'Authorization': response_data['token']}
 
 
     def tearDown(self):
         """Clearing all DB contents"""
         db.session.remove()
         db.drop_all()
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        os.remove(dir_path+'/testdb.sqlite')

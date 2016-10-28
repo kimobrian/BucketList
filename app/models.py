@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from passlib.apps import custom_app_context as pwd_context
 
 
-class CRUD(db.Model):
+class BaseModel(db.Model):
     __abstract__ = True
 
     id = db.Column(db.Integer, primary_key=True)
@@ -18,14 +18,18 @@ class User(db.Model):
     password = db.Column(db.String(128))
     bucket_list = db.relationship('BucketList', backref='owner', lazy='dynamic')
 
+    def __init__(self, email, password):
+        self.email = email
+        self.password = password
+
     def set_password(self, password):
-        pass
+        self.password = pwd_context.encrypt(password)
 
     def check_password(self, password):
-        pass
+        return pwd_context.verify(password, self.password)
 
 
-class BucketList(CRUD):
+class BucketList(BaseModel):
     __tablename__ = 'bucketlists'
     name = db.Column(db.String(64), unique=True)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -33,7 +37,7 @@ class BucketList(CRUD):
                             cascade="all, delete-orphan", lazy='dynamic')
 
 
-class BucketListItem(CRUD):
+class BucketListItem(BaseModel):
 
     '''Item model defined for api service. '''
 

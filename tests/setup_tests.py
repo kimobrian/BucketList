@@ -1,10 +1,11 @@
-from app import app, db
+from manage import app, db
 from flask_testing import TestCase
 from app.models import User, BucketList, BucketListItem
 from datetime import datetime
 from config import config_settings
 import os
 import json
+from flask import url_for
 
 class BaseTestSetup(TestCase):
 
@@ -42,13 +43,11 @@ class BaseTestSetup(TestCase):
 
         db.session.add(bucketlist_item)
         db.session.commit()
-
-        rv = self.app.get('/')
-        print(str(rv))
-
-        reg_details = {'email': 'unique@gmail.com', 'password': 'password123'}
-        response = self.app.post('/auth/register/', data=reg_details, content_type="application/json")
         self.auth_token = ''
+
+        # reg_details = {'email': 'unique@gmail.com', 'password': 'password123'}
+        # response = self.app.post('/auth/register/', data=reg_details, content_type="application/json")
+        # self.auth_token = ''
         # login_details = {'email': 'unique@gmail.com', 'password': 'password123'}
         # response = self.app.post('/auth/login/', data=json.dumps(login_details), content_type="application/json")
         # response_data = response.json

@@ -1,7 +1,7 @@
 *.pyc
+*.sqlite
 venv/
 .coverage
 .coverage.*
 #migrations
 migrations/
-*.sqlite

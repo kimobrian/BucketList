@@ -4,7 +4,7 @@ from app import db
 from app.models import User, BucketList, BucketListItem
 from datetime import datetime, timedelta
 import jwt
-from flask import jsonify
+from flask import jsonify, g
 
 
 encryption_secret = 'gd46.;[/]9j$%^gk)-jt+4'
@@ -111,26 +111,60 @@ class Register(Resource):
 class BucketListsAction(Resource):
     '''Bucketlists controller'''
 
-    def get(self, id):
-        '''List all the created bucket lists'''
+    @login_required
+    def get(self, bucketlist_id=None):
+        '''List all the created bucket lists by a user'''
         '''Get single bucket list if Id is provided'''
-        pass
+        token_payload = parse_token(request)
+        user_id = token_payload['sub']
+        if bucketlist_id is not None:
+            return bucketlist_id
+        else:
+            try:
+                bucketlist = BucketList.query.filter_by(created_by=user_id).one()
+                response_data = {}
+                response_data['id'] = bucketlist.id
+                response_data['name'] = bucketlist.name
+                response_data['date_created'] = bucketlist.date_created
+                response_data['date_modified'] = bucketlist.date_modified
+                response_data['created_by'] = bucketlist.created_by
+                bucketlist_items = BucketListItem.query.filter_by(bucketlist_id=bucketlist.id).all()
+                if len(bucketlist_items) == 0:
+                    response_data['items'] = []
+                else:
+                    response_data['items'] = []
+                    for item in bucketlist_items:
+                        items_data = {}
+                        items_data['id'] = item['id']
+                        items_data['name'] = item['name']
+                        items_data['date_created'] = item['date_created']
+                        items_data['date_modified'] = item['date_modified']
+                        items_data['done'] = item['done']
+                        response_data['items'].append(items_data)
+                response = jsonify(response_data)
+                response.status_code = 200
+                return response
+            except Exception as exc:
+                '''No Bucket List Found for user'''
+                response = jsonify({'message': 'No bucketlists found'})
+                response.status_code = 404
+                return response
 
     def post(self):
         '''Create a new bucket list'''
         pass
 
-    def put(self, id):
+    def put(self, bucketlist_id=None):
         '''Update this bucket list'''
         pass
 
-    def delete(self, id):
+    def delete(self, bucketlist_id=None):
         '''Delete this single bucket list'''
         pass
 
 class BucketListItemAction(Resource):
     """Bucketlists Items controller """
-    def post(self, id):
+    def post(self, bucketlist_id):
         '''Create a new item in bucket list'''
         pass
 

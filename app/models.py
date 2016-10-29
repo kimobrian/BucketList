@@ -22,13 +22,16 @@ class User(db.Model):
 
     def __init__(self, email, password):
         self.email = email
-        self.password = password
+        self.set_password(password)
 
     def set_password(self, password):
-        pass
+        self.password = pwd_context.encrypt(password)
 
     def check_password(self, password):
-        pass
+        return pwd_context.verify(password, self.password)
+
+    def __repr__(self):
+        print(self.email+':'+self.id)
 
 
 class BucketList(BaseModel):
@@ -51,4 +54,10 @@ class BucketListItem(BaseModel):
 
     def to_json(self):
         ''' Return bucket list item details'''
-        pass
+        b_list_item_details = {}
+        b_list_item_details['id'] = self.id
+        b_list_item_details['name'] = self.name
+        b_list_item_details['date_created'] = self.date_created
+        b_list_item_details['date_modified'] = self.date_modified
+        b_list_item_details['done'] = self.done
+        return b_list_item_details

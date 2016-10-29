@@ -16,42 +16,22 @@ class BaseTestSetup(TestCase):
 
     def setUp(self):
         self.app = self.create_app().test_client()
+        self.database = db
+        self.BL = BucketList
         db.create_all()
-        
-        user = User(
-            email="brian_kim@gmail.com",
-            password="complex_pass"
-        )
 
-        db.session.add(user)
-        db.session.commit()
+        #Register Test Users
+        self.reg_data = {'email': 'brian@gmail.com', 'password': 'password123'}
+        self.reg_response = self.app.post('/auth/register/', data=self.reg_data) #Response when user Registers
 
-        bucketlist = BucketList(
-            name="Todo List",
-            date_created=datetime.now(),
-            date_modified=datetime.now(),
-            created_by=user.id
-        )
+        # Generate token to be used for testing routes that require login
+        login_response = self.app.post('/auth/login/', data=self.reg_data) #Login User
+        login_response_message = login_response.json
+        self.header_content_token = {'Authorization': login_response_message['token']}
 
-        db.session.add(bucketlist)
-        db.session.commit()
-
-        bucketlist_item = BucketListItem(
-            name='Todo A',
-            bucketlist_id=bucketlist.id
-        )
-
-        db.session.add(bucketlist_item)
-        db.session.commit()
-        self.auth_token = ''
-
-        # reg_details = {'email': 'unique@gmail.com', 'password': 'password123'}
-        # response = self.app.post('/auth/register/', data=reg_details, content_type="application/json")
-        # self.auth_token = ''
-        # login_details = {'email': 'unique@gmail.com', 'password': 'password123'}
-        # response = self.app.post('/auth/login/', data=json.dumps(login_details), content_type="application/json")
-        # response_data = response.json
-        # self.auth_token = {'Authorization': response_data['token']}
+        # Create bucketlist to be used for tests
+        self.bucket_list_form = {'name': 'My Bucketlist'}
+        self.bucket_list_response = self.app.post('/bucketlists/', data=self.bucket_list_form, headers=self.header_content_token)
 
 
     def tearDown(self):

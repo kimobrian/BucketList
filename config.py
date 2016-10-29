@@ -1,5 +1,4 @@
 import os
-# BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
 class DevelopmentConfig(object):
     """Development configuration."""
@@ -16,6 +15,7 @@ class TestingConfig(object):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = db_uri
     SQLALCHEMY_TRACK_MODIFICATIONS = True
+    PRESERVE_CONTEXT_ON_EXCEPTION = False
 
 config_settings = {
     'development': DevelopmentConfig,

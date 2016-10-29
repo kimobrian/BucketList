@@ -3,5 +3,5 @@
 venv/
 .coverage
 .coverage.*
-#migrations
+.DS_Store
 migrations/

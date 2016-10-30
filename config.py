@@ -1,5 +1,6 @@
 import os
 
+
 class DevelopmentConfig(object):
     """Development configuration."""
     DEBUG = True
@@ -7,6 +8,7 @@ class DevelopmentConfig(object):
     db_uri = 'sqlite:///{}'.format(db_path)
     SQLALCHEMY_DATABASE_URI = db_uri
     SQLALCHEMY_TRACK_MODIFICATIONS = True
+
 
 class TestingConfig(object):
     """Testing configuration."""

@@ -1,5 +1,4 @@
 from app import db
-from datetime import datetime, timedelta
 from passlib.apps import custom_app_context as pwd_context
 
 
@@ -7,8 +6,15 @@ class BaseModel(db.Model):
     __abstract__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    date_created = db.Column(db.DateTime, index=True, default=db.func.current_timestamp())
-    date_modified = db.Column(db.DateTime, index=True, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    date_created = db.Column(
+        db.DateTime,
+        index=True,
+        default=db.func.current_timestamp())
+    date_modified = db.Column(
+        db.DateTime,
+        index=True,
+        default=db.func.current_timestamp(),
+        onupdate=db.func.current_timestamp())
 
 
 class User(db.Model):
@@ -16,7 +22,10 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), index=True, unique=True, nullable=False)
     password = db.Column(db.String(128))
-    bucket_list = db.relationship('BucketList', backref='owner', lazy='dynamic')
+    bucket_list = db.relationship(
+        'BucketList',
+        backref='owner',
+        lazy='dynamic')
 
     def __init__(self, email, password):
         self.email = email
@@ -29,14 +38,20 @@ class User(db.Model):
         return pwd_context.verify(password, self.password)
 
     def __repr__(self):
-        print(self.email+':'+self.id)
+        print(self.email + ':' + self.id)
 
 
 class BucketList(BaseModel):
     __tablename__ = 'bucketlists'
     name = db.Column(db.String(64), unique=True)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    items = db.relationship('BucketListItem', backref='bucketlists', passive_deletes=True)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id'),
+        nullable=False)
+    items = db.relationship(
+        'BucketListItem',
+        backref='bucketlists',
+        passive_deletes=True)
 
 
 class BucketListItem(BaseModel):

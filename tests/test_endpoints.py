@@ -159,16 +159,6 @@ class EndpointTests(BaseTestSetup):
         response = self.app.post('/bucketlists/id/items/', headers=self.header_content_token)
         self.assert200(response, message='Failed to create bucket list item')
 
-    def test_update_of_bucket_list_item(self):
-        '''Test if bucketlist item was created'''
-        response = self.app.put('/bucketlists/id/items/item_id/', headers=self.header_content_token)
-        self.assert200(response, message='Failed to update bucket list item')
-
-    def test_deletion_of_bucket_list_item(self):
-        '''Test if bucketlist item was deleted'''
-        response = self.app.put('/bucketlists/id/items/item_id/', headers=self.header_content_token)
-        self.assert200(response, message='Failed to update bucket list item')
-
     def test_create_token(self):
         '''Test if a token was created for logged in user'''
         login_data = {'email': 'brian@gmail.com', 'password': 'password123'}

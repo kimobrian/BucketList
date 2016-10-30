@@ -227,6 +227,7 @@ class BucketListsAction(Resource):
     def delete(self, bucketlist_id):
         '''Delete this single bucket list'''
         deleted_rows = BucketList.query.filter_by(created_by=g.user_id, id=bucketlist_id).delete()
+        db.session.commit()
         if deleted_rows == 0:
             response = jsonify({'message': 'No Bucket List with that ID'})
             response.status_code = 200
@@ -241,14 +242,97 @@ class BucketListItemAction(Resource):
     @login_required
     def post(self, bucketlist_id):
         '''Create a new item in bucket list'''
-        pass
+        try:
+            check_bucket_list = BucketList.query.filter_by(id=bucketlist_id).one()
+            item_name = request.form['name']
+            if not item_name:
+                response = jsonify({'message': 'Please provide bucketlist item data'})
+                response.status_code = 200
+                return response
+            else:
+                check_item = BucketListItem.query.filter_by(name=item_name, bucketlist_id=bucketlist_id).all()
+                if len(check_item) > 0:
+                    response = jsonify({'message': 'Bucket List Item with that description exists'})
+                    response.status_code = 200
+                    return response
+                else:
+                    bucket_list_item = BucketListItem()
+                    bucket_list_item.name = item_name
+                    bucket_list_item.bucketlist_id = bucketlist_id
+                    db.session.add(bucket_list_item)
+                    try:
+                        db.session.commit()
+                        response = jsonify({'message': 'Bucket List Item Saved Successfully'})
+                        response.status_code = 200
+                        return response
+                    except Exception:
+                        response = jsonify({'message': 'Error Occurred Saving Item'})
+                        response.status_code = 200
+                        return response
+        except Exception:
+            response = jsonify({'message': 'Missing bucketlist ID'})
+            response.status_code = 200
+            return response
 
     @login_required
     def put(self, bucketlist_id, item_id):
         '''Update a bucket list item'''
-        pass
+        data = request.form['name']
+        if not data:
+            response = jsonify({'message': 'Please provide update info'})
+            response.status_code = 200
+            return response
+        try:
+            check_item_id = BucketListItem.query.filter_by(id=item_id, bucketlist_id=bucketlist_id).one()
+            try:
+                check_item_content = BucketListItem.query.filter_by(name=data, bucketlist_id=bucketlist_id).one()
+                response = jsonify({'message': 'Bucket List Item with that description exists'})
+                response.status_code = 200
+                return response
+            except Exception:
+                try:
+                    check_bucketlist_id = BucketList.query.filter_by(id=bucketlist_id).one()
+                    bucketlist_item = BucketListItem()
+                    bucketlist_item.name = data
+                    bucketlist_item.bucketlist_id = bucketlist_id
+                    db.session.add(bucketlist_item)
+                    try:
+                        db.session.commit()
+                        response = jsonify({'message': 'Item updated Successfully'})
+                        response.status_code = 200
+                        return response
+                    except Exception:
+                        response = jsonify({'message': 'Error Occurred Updating Item'})
+                        response.status_code = 200
+                        return response
+                except Exception:
+                    response = jsonify({'message': 'The Item does not belong to any known bucketlist'})
+                    response.status_code = 200
+                    return response
+        except Exception:
+            response = jsonify({'message': 'No bucket list item with that Id exists'})
+            response.status_code = 200
+            return response
 
     @login_required
     def delete(self, bucketlist_id, item_id):
         '''Delete an item in a bucket list'''
-        pass
+        try:
+            check_bucketlist_id = BucketList.query.filter_by(id=bucketlist_id).one()
+        except Exception:
+            db.session.commit()
+            response = jsonify({'message': 'No bucketlist with given ID'})
+            response.status_code = 200
+            return response
+        try:
+            check_item_id = BucketListItem.query.filter_by(id=item_id, bucketlist_id=bucketlist_id).one()
+            deleted_records = BucketListItem.query.filter_by(id=item_id, bucketlist_id=bucketlist_id).delete()
+            if deleted_records > 0:
+                db.session.commit()
+                response = jsonify({'message': 'BucketList Deleted Successfully'})
+                response.status_code = 200
+                return response
+        except Exception:
+            response = jsonify({'message': 'No bucket list item with that Id exists'})
+            response.status_code = 200
+            return response

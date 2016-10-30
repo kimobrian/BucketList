@@ -10,8 +10,6 @@ class BaseModel(db.Model):
     date_created = db.Column(db.DateTime, index=True, default=db.func.current_timestamp())
     date_modified = db.Column(db.DateTime, index=True, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
-    def save(self):
-        pass
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -38,19 +36,16 @@ class BucketList(BaseModel):
     __tablename__ = 'bucketlists'
     name = db.Column(db.String(64), unique=True)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    items = db.relationship('BucketListItem', backref='bucketlists',
-                            cascade="all, delete-orphan", lazy='dynamic')
+    items = db.relationship('BucketListItem', backref='bucketlists', passive_deletes=True)
 
 
 class BucketListItem(BaseModel):
-
     '''Item model defined for api service. '''
-
     __tablename__ = 'items'
     name = db.Column(db.String(64))
     done = db.Column(db.Boolean, default=False, nullable=False)
     bucketlist_id = db.Column(db.Integer, db.ForeignKey(
-        'bucketlists.id'), nullable=False)
+        'bucketlists.id', ondelete='CASCADE'), nullable=False)
 
     def to_json(self):
         ''' Return bucket list item details'''

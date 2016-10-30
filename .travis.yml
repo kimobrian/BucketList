@@ -4,4 +4,6 @@ python:
 install:
   pip install -r requirements.txt
 script:
-  - nosetests -v -s
+  - tox
+after_script:
+  coveralls

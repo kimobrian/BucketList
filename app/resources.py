@@ -118,6 +118,23 @@ class Register(Resource):
             return response
 
 
+def bucketlists_details(bucket_list):
+    bucketlist_details = {}
+    bucketlist_details['id'] = bucket_list.id
+    bucketlist_details['name'] = bucket_list.name
+    bucketlist_details['items'] = []
+    bucket_list_items = BucketListItem.query.filter_by(
+        bucketlist_id=bucket_list.id).all()
+    if len(bucket_list_items) > 0:
+        for bucketlist_item in bucket_list_items:
+            b_list_item_details = bucketlist_item.to_json()
+            bucketlist_details['items'].append(b_list_item_details)
+    bucketlist_details['date_created'] = bucket_list.date_created
+    bucketlist_details['date_modified'] = bucket_list.date_modified
+    bucketlist_details['created_by'] = bucket_list.created_by
+    return bucketlist_details
+
+
 class BucketListsAction(Resource):
     '''Bucketlists controller'''
 
@@ -126,111 +143,48 @@ class BucketListsAction(Resource):
         '''List all the created bucket lists by a user'''
         '''Get single bucket list if Id is provided'''
         query_string = request.args.to_dict()
+        limit = query_string.get('limit', 20)
+        try:
+            limit = int(limit)
+        except ValueError:
+            response = jsonify(
+                {'message': 'Limit of records must be a number'})
+            response.status_code = 200
+            return response
         if bucketlist_id is None:
             if 'q' in query_string:
                 bucketlist_name = query_string.get('q')
                 bucket_lists = BucketList.query.filter(BucketList.name.like(
                     '%' + bucketlist_name + '%')).filter_by(
-                    created_by=g.user_id).all()
-                if len(bucket_lists) > 0:
-                    all_bucket_lists = {}
-                    for bucket_list in bucket_lists:
-                        bucketlist_details = {}
-                        bucketlist_details['id'] = bucket_list.id
-                        bucketlist_details['name'] = bucket_list.name
-                        bucketlist_details['items'] = []
-                        bucket_list_items = BucketListItem.query.filter_by(
-                            bucketlist_id=bucket_list.id).all()
-                        if len(bucket_list_items) > 0:
-                            for bucketlist_item in bucket_list_items:
-                                b_list_item_details = {}
-                                b_list_item_details['id'] = bucketlist_item.id
-                                b_list_item_details[
-                                    'name'] = bucketlist_item.name
-                                b_list_item_details[
-                                    'date_created'] = \
-                                    bucketlist_item.date_created
-                                b_list_item_details['date_modified'] = \
-                                    bucketlist_item.date_modified
-                                b_list_item_details[
-                                    'done'] = bucketlist_item.done
-                                bucketlist_details['items'].append(
-                                    b_list_item_details)
-                        bucketlist_details[
-                            'date_created'] = bucket_list.date_created
-                        bucketlist_details[
-                            'date_modified'] = bucket_list.date_modified
-                        bucketlist_details[
-                            'created_by'] = bucket_list.created_by
-                        all_bucket_lists[bucket_list.id] = bucketlist_details
-                    response = jsonify({'info': all_bucket_lists})
-                    response.status_code = 200
-                    return response
-                else:
-                    response = jsonify(
-                        {'message': 'No Bucket Lists Containing that word'})
-                    response.status_code = 200
-                    return response
-
-        if bucketlist_id is None:
-            # Limit for pagination
-            limit = query_string.get('limit', 20)
-            if int(limit) > 100:
-                limit = 100
-            bucket_lists = BucketList.query.filter_by(
-                created_by=g.user_id).limit(limit).all()
+                    created_by=g.user_id).limit(limit).all()
+            else:
+                bucket_lists = BucketList.query.filter_by(
+                    created_by=g.user_id).limit(limit).all()
             if len(bucket_lists) > 0:
                 all_bucket_lists = {}
                 for bucket_list in bucket_lists:
-                    bucketlist_details = {}
-                    bucketlist_details['id'] = bucket_list.id
-                    bucketlist_details['name'] = bucket_list.name
-                    bucketlist_details['items'] = []
-                    bucket_list_items = BucketListItem.query.filter_by(
-                        bucketlist_id=bucket_list.id).all()
-                    if len(bucket_list_items) > 0:
-                        for bucketlist_item in bucket_list_items:
-                            b_list_item_details = {}
-                            b_list_item_details['id'] = bucketlist_item.id
-                            b_list_item_details['name'] = bucketlist_item.name
-                            b_list_item_details['date_created'] = \
-                                bucketlist_item.date_created
-                            b_list_item_details['date_modified'] = \
-                                bucketlist_item.date_modified
-                            b_list_item_details['done'] = bucketlist_item.done
-                            bucketlist_details['items'].append(
-                                b_list_item_details)
-                    bucketlist_details[
-                        'date_created'] = bucket_list.date_created
-                    bucketlist_details[
-                        'date_modified'] = bucket_list.date_modified
-                    bucketlist_details['created_by'] = bucket_list.created_by
-                    all_bucket_lists[bucket_list.id] = bucketlist_details
+                    bl_details = bucketlists_details(bucket_list)
+                    all_bucket_lists[bucket_list.id] = bl_details
                 response = jsonify({'info': all_bucket_lists})
                 response.status_code = 200
                 return response
             else:
-                response = jsonify({'message': 'No Bucket Lists Created'})
-                response.status_code = 200
-                return response
+                if 'q' in query_string:
+                    response = jsonify(
+                        {'message': 'No Bucket Lists Containing that word'})
+                    response.status_code = 200
+                    return response
+                else:
+                    response = jsonify(
+                        {'message': 'No Bucket Lists Created'})
+                    response.status_code = 200
+                    return response
         else:
             try:
                 bucket_list = BucketList.query.filter_by(
-                    id=bucketlist_id, created_by=g.user_id).one()
-                bucketlist_details = {}
-                bucketlist_details['id'] = bucket_list.id
-                bucketlist_details['name'] = bucket_list.name
-                bucketlist_details['items'] = []
-                bucket_list_items = BucketListItem.query.filter_by(
-                    bucketlist_id=bucket_list.id).all()
-                if len(bucket_list_items) > 0:
-                    for bucketlist_item in bucket_list_items:
-                        b_list_item_details = bucketlist_item.to_json()
-                        bucketlist_details['items'].append(b_list_item_details)
-                bucketlist_details['date_created'] = bucket_list.date_created
-                bucketlist_details['date_modified'] = bucket_list.date_modified
-                bucketlist_details['created_by'] = bucket_list.created_by
-                response = jsonify({'Bucket List': bucketlist_details})
+                    id=int(bucketlist_id), created_by=g.user_id).one()
+                bl_details = bucketlists_details(bucket_list)
+                response = jsonify({'Bucket List': bl_details})
                 response.status_code = 200
                 return response
             except Exception:

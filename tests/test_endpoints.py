@@ -278,3 +278,12 @@ class EndpointTests(BaseTestSetup):
         self.assertEqual(
             {'message': 'No Bucket Lists Containing that word'}, response.json)
         self.assert200(response)
+
+    def test_if_bucketlist_limit_is_invalid(self):
+        '''Test if number of records to be returned is not a number'''
+        response = self.app.get(
+            '/bucketlists/?limit=invalid',
+            headers=self.header_content_token)
+        self.assertEqual(
+            {'message': 'Limit of records must be a number'}, response.json)
+        self.assert200(response)

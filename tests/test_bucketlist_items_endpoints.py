@@ -17,8 +17,7 @@ class TestItemsEndpoints(BaseTestSetup):
 
     def test_creation_of_empty_item_in_a_missing_bucket_list(self):
         '''
-        Test creation of bucket list item in a
-        bucketlist that does not exist
+        Test creation of bucket list item in a bucketlist that does not exist
         '''
         data = {'name': 'My Bucketlist Item'}
         response = self.app.post(
@@ -81,8 +80,7 @@ class TestItemsEndpoints(BaseTestSetup):
 
     def test_update_item_in_non_existent_bucket_list(self):
         '''
-        Test updating an item that does not
-        exist(e.g Wrong bucketlist id)
+        Test updating an item that does not exist(e.g Wrong bucketlist id)
         '''
         data = {'name': 'Be a professional programmer'}
         response = self.app.put(
@@ -111,8 +109,7 @@ class TestItemsEndpoints(BaseTestSetup):
 
     def test_deleting_item_from_bucketlist_that_does_not_exist(self):
         '''
-        Test for deleting an item where
-        given bucketlist id does not exist
+        Test for deleting an item where given bucketlist id does not exist
         '''
         response = self.app.delete(
             '/bucketlists/23/items/1/',
@@ -144,3 +141,17 @@ class TestItemsEndpoints(BaseTestSetup):
         self.assertEqual(
             responseB.json, {
                 'message': 'BucketList Deleted Successfully'})
+
+    def test_updating_an_item_without_id(self):
+        '''Test trying to update a bucket list item without providing an ID'''
+        response = self.app.put('/bucketlists/1/items/',
+                                headers=self.header_content_token)
+        self.assertEqual(
+            response.json, {'message': 'Please provide Id of Item to update'})
+
+    def test_deleting_an_item_wihout_id(self):
+        '''Test trying to delete an item without providing its id'''
+        response = self.app.delete(
+            '/bucketlists/1/items/', headers=self.header_content_token)
+        self.assertEqual(
+            response.json, {'message': 'Please provide Id of item to delete'})

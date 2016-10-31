@@ -25,7 +25,7 @@ class EndpointTests(BaseTestSetup):
 
     def test_login_with_invalid_details(self):
         '''
-        Test User Login with invalid details/
+        Test User Login with invalid details
         Not Available in DB
         '''
         data = {'email': 'wrong@gmail.com', 'password': 'wrong_pass'}
@@ -181,7 +181,7 @@ class EndpointTests(BaseTestSetup):
     def test_update_of_bucket_list_with_name_that_exists(self):
         '''
         Test for update of existing bucket list
-        proving name that is already in use
+        providing name that is already in use
         '''
         # Create a new bucket list to test duplicate names
         data = {'name': 'My New Bucketlist'}
@@ -287,3 +287,25 @@ class EndpointTests(BaseTestSetup):
         self.assertEqual(
             {'message': 'Limit of records must be a number'}, response.json)
         self.assert200(response)
+
+    def test_update_of_bucketlist_without_id(self):
+        '''Test for editting a bucketlist without providing id'''
+        response = self.app.put(
+            '/bucketlists/', headers=self.header_content_token)
+        self.assertEqual(
+            response.json, {'message': 'Provide Id of Bucketlist to Edit'})
+
+    def test_deletion_of_bucketlist_without_id(self):
+        '''Try to delete bucketlist withour providing an Id'''
+        response = self.app.delete(
+            '/bucketlists/', headers=self.header_content_token)
+        self.assertEqual(
+            {'message': 'Provide Id of bucket list to delete'}, response.json)
+
+    def test_creation_of_bucketlist_with_id(self):
+        '''Test creation of bucketlist with an Id provided'''
+        response = self.app.post(
+            '/bucketlists/1/', headers=self.header_content_token)
+        self.assertEqual(
+            {'message': 'New bucketlist creation does not require an ID'},
+            response.json)

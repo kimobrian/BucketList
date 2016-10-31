@@ -24,7 +24,10 @@ class EndpointTests(BaseTestSetup):
         self.assert200(login_response, message='Login Failed')
 
     def test_login_with_invalid_details(self):
-        '''Test User Login with invalid details/Not Available in DB'''
+        '''
+        Test User Login with invalid details/
+        Not Available in DB
+        '''
         data = {'email': 'wrong@gmail.com', 'password': 'wrong_pass'}
         response = self.app.post('/auth/login/', data=data)
         self.assertEqual(

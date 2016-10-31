@@ -15,7 +15,7 @@ def create_token(user):
     payload = {
         'sub': user.id,
         'iat': datetime.utcnow(),
-        'exp': datetime.utcnow() + timedelta(minutes=5)
+        'exp': datetime.utcnow() + timedelta(minutes=10)
     }
     token = jwt.encode(payload, encryption_secret, algorithm='HS256')
     return token.decode('unicode_escape')
@@ -193,8 +193,13 @@ class BucketListsAction(Resource):
                 return response
 
     @login_required
-    def post(self):
+    def post(self, bucketlist_id=None):
         '''Create a new bucket list'''
+        if bucketlist_id is not None:
+            response = jsonify(
+                {'message': 'New bucketlist creation does not require an ID'})
+            response.status_code = 400
+            return response
         name = request.form['name']
         if not name:
             response = jsonify(
@@ -225,8 +230,13 @@ class BucketListsAction(Resource):
                 return response
 
     @login_required
-    def put(self, bucketlist_id):
+    def put(self, bucketlist_id=None):
         '''Update this bucket list'''
+        if bucketlist_id is None:
+            response = jsonify(
+                {'message': 'Provide Id of Bucketlist to Edit'})
+            response.status_code = 200
+            return response
         new_data = request.form['name']
         if not new_data:
             response = jsonify(
@@ -248,14 +258,26 @@ class BucketListsAction(Resource):
                 response.status_code = 200
                 return response
             elif updated_rows > 0:
-                response = jsonify(
-                    {'message': 'Bucket List updated Successfully'})
-                response.status_code = 200
-                return response
+                try:
+                    db.session.commit()
+                    response = jsonify(
+                        {'message': 'Bucket List updated Successfully'})
+                    response.status_code = 200
+                    return response
+                except Exception:
+                    response = jsonify(
+                        {'message': 'Error Occurred Updating Bucket List'})
+                    response.status_code = 200
+                    return response
 
     @login_required
-    def delete(self, bucketlist_id):
+    def delete(self, bucketlist_id=None):
         '''Delete this single bucket list'''
+        if bucketlist_id is None:
+            response = jsonify(
+                {'message': 'Provide Id of bucket list to delete'})
+            response.status_code = 200
+            return response
         deleted_rows = BucketList.query.filter_by(
             created_by=g.user_id, id=bucketlist_id).delete()
         db.session.commit()
@@ -315,8 +337,13 @@ class BucketListItemAction(Resource):
             return response
 
     @login_required
-    def put(self, bucketlist_id, item_id):
+    def put(self, bucketlist_id, item_id=None):
         '''Update a bucket list item'''
+        if item_id is None:
+            response = jsonify(
+                {'message': 'Please provide Id of Item to update'})
+            response.status_code = 200
+            return response
         data = request.form['name']
         if not data:
             response = jsonify({'message': 'Please provide update info'})
@@ -338,10 +365,8 @@ class BucketListItemAction(Resource):
                     # Check bucketlist ID
                     BucketList.query.filter_by(
                         id=bucketlist_id).one()
-                    bucketlist_item = BucketListItem()
-                    bucketlist_item.name = data
-                    bucketlist_item.bucketlist_id = bucketlist_id
-                    db.session.add(bucketlist_item)
+                    BucketListItem.query.filter_by(id=item_id).update(
+                        {'name': data})
                     try:
                         db.session.commit()
                         response = jsonify(
@@ -353,9 +378,11 @@ class BucketListItemAction(Resource):
                             {'message': 'Error Occurred Updating Item'})
                         response.status_code = 200
                         return response
-                except Exception:
-                    response = jsonify({'message': 'The Item does not belong to \
-                        any known bucketlist'})
+                except Exception as exc:
+                    print(exc)
+                    response = jsonify(
+                        {'message':
+                         'The Item does not belong to any known bucketlist'})
                     response.status_code = 200
                     return response
         except Exception:
@@ -365,8 +392,13 @@ class BucketListItemAction(Resource):
             return response
 
     @login_required
-    def delete(self, bucketlist_id, item_id):
+    def delete(self, bucketlist_id, item_id=None):
         '''Delete an item in a bucket list'''
+        if item_id is None:
+            response = jsonify(
+                {'message': 'Please provide Id of item to delete'})
+            response.status_code = 200
+            return response
         try:
             # Check list ID
             BucketList.query.filter_by(

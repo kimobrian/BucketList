@@ -8,7 +8,7 @@ class TestItemsEndpoints(BaseTestSetup):
         '''Test creation of bucket list item with empty data'''
         data = {'name': ''}
         response = self.app.post(
-            '/bucketlists/1/items/',
+            '/v1/bucketlists/1/items/',
             data=data,
             headers=self.header_content_token)
         self.assertEquals(
@@ -21,7 +21,7 @@ class TestItemsEndpoints(BaseTestSetup):
         '''
         data = {'name': 'My Bucketlist Item'}
         response = self.app.post(
-            '/bucketlists/20/items/',
+            '/v1/bucketlists/20/items/',
             data=data,
             headers=self.header_content_token)
         self.assertEquals(response.json, {'message': 'Missing bucketlist ID'})
@@ -30,7 +30,7 @@ class TestItemsEndpoints(BaseTestSetup):
         '''Test for successful creation of item'''
         data = {'name': 'My Bucketlist Item'}
         response = self.app.post(
-            '/bucketlists/1/items/',
+            '/v1/bucketlists/1/items/',
             data=data,
             headers=self.header_content_token)
         self.assertEquals(
@@ -41,11 +41,11 @@ class TestItemsEndpoints(BaseTestSetup):
         '''Test creation of duplicate item in the same bucket list'''
         data = {'name': 'My Bucketlist Item'}
         self.app.post(
-            '/bucketlists/1/items/',
+            '/v1/bucketlists/1/items/',
             data=data,
             headers=self.header_content_token)
         response2 = self.app.post(
-            '/bucketlists/1/items/',
+            '/v1/bucketlists/1/items/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -56,7 +56,7 @@ class TestItemsEndpoints(BaseTestSetup):
         '''Test update of item with no data provided'''
         data = {'name': ''}
         response = self.app.put(
-            '/bucketlists/1/items/1/',
+            '/v1/bucketlists/1/items/1/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -67,11 +67,11 @@ class TestItemsEndpoints(BaseTestSetup):
         '''Test updating an item with a description that is already in use'''
         data = {'name': 'Be a professional programmer'}
         self.app.post(
-            '/bucketlists/1/items/',
+            '/v1/bucketlists/1/items/',
             data=data,
             headers=self.header_content_token)  # Create new item
         responseB = self.app.put(
-            '/bucketlists/1/items/1/',
+            '/v1/bucketlists/1/items/1/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -84,7 +84,7 @@ class TestItemsEndpoints(BaseTestSetup):
         '''
         data = {'name': 'Be a professional programmer'}
         response = self.app.put(
-            '/bucketlists/23/items/1/',
+            '/v1/bucketlists/23/items/1/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -95,12 +95,12 @@ class TestItemsEndpoints(BaseTestSetup):
         '''Test that item was updated Successfully'''
         data = {'name': 'Be a professional programmer'}
         self.app.post(
-            '/bucketlists/1/items/',
+            '/v1/bucketlists/1/items/',
             data=data,
             headers=self.header_content_token)  # Create new item
         data = {'name': 'Be a professional programmer and teacher'}
         responseB = self.app.put(
-            '/bucketlists/1/items/1/',
+            '/v1/bucketlists/1/items/1/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -112,7 +112,7 @@ class TestItemsEndpoints(BaseTestSetup):
         Test for deleting an item where given bucketlist id does not exist
         '''
         response = self.app.delete(
-            '/bucketlists/23/items/1/',
+            '/v1/bucketlists/23/items/1/',
             headers=self.header_content_token)
         self.assertEqual(
             response.json, {
@@ -121,7 +121,7 @@ class TestItemsEndpoints(BaseTestSetup):
     def test_deletion_of_an_item_that_does_not_exist(self):
         '''Test deletion of item whose id does not exist'''
         response = self.app.delete(
-            '/bucketlists/1/items/43/',
+            '/v1/bucketlists/1/items/43/',
             headers=self.header_content_token)
         self.assertEquals(
             response.json, {
@@ -131,11 +131,11 @@ class TestItemsEndpoints(BaseTestSetup):
         '''Test that an item is deleted succesfully'''
         data = {'name': 'Be a professional programmer'}
         self.app.post(
-            '/bucketlists/1/items/',
+            '/v1/bucketlists/1/items/',
             data=data,
             headers=self.header_content_token)  # Create new item
         responseB = self.app.delete(
-            '/bucketlists/1/items/1/',
+            '/v1/bucketlists/1/items/1/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -144,7 +144,7 @@ class TestItemsEndpoints(BaseTestSetup):
 
     def test_updating_an_item_without_id(self):
         '''Test trying to update a bucket list item without providing an ID'''
-        response = self.app.put('/bucketlists/1/items/',
+        response = self.app.put('/v1/bucketlists/1/items/',
                                 headers=self.header_content_token)
         self.assertEqual(
             response.json, {'message': 'Please provide Id of Item to update'})
@@ -152,6 +152,6 @@ class TestItemsEndpoints(BaseTestSetup):
     def test_deleting_an_item_wihout_id(self):
         '''Test trying to delete an item without providing its id'''
         response = self.app.delete(
-            '/bucketlists/1/items/', headers=self.header_content_token)
+            '/v1/bucketlists/1/items/', headers=self.header_content_token)
         self.assertEqual(
             response.json, {'message': 'Please provide Id of item to delete'})

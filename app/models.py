@@ -43,7 +43,7 @@ class User(db.Model):
 
 class BucketList(BaseModel):
     __tablename__ = 'bucketlists'
-    name = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(64))
     created_by = db.Column(
         db.Integer,
         db.ForeignKey('users.id'),

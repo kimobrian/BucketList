@@ -37,9 +37,6 @@ class User(db.Model):
     def check_password(self, password):
         return pwd_context.verify(password, self.password)
 
-    def __repr__(self):
-        print(self.email + ':' + self.id)
-
 
 class BucketList(BaseModel):
     __tablename__ = 'bucketlists'

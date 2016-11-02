@@ -8,7 +8,7 @@ class EndpointTests(BaseTestSetup):
 
     def test_homepage(self):
         '''Test the Response from the Homepage'''
-        response = self.app.get('/')
+        response = self.app.get('/v1/')
         response_data = response.json
         self.assertEquals(
             response_data, {
@@ -17,7 +17,7 @@ class EndpointTests(BaseTestSetup):
     def test_login_with_valid_details(self):
         '''Test User Login with valid details'''
         login_response = self.app.post(
-            '/auth/login/', data=self.reg_data)  # Login User
+            '/v1/auth/login/', data=self.reg_data)  # Login User
         login_response_message = login_response.json
         res_message = login_response_message['message']
         self.assertEquals(res_message, 'Logged In', msg='Login Failed')
@@ -29,7 +29,7 @@ class EndpointTests(BaseTestSetup):
         Not Available in DB
         '''
         data = {'email': 'wrong@gmail.com', 'password': 'wrong_pass'}
-        response = self.app.post('/auth/login/', data=data)
+        response = self.app.post('/v1/auth/login/', data=data)
         self.assertEqual(
             response.json, {
                 'message': 'Invalid email, password combination'})
@@ -38,7 +38,7 @@ class EndpointTests(BaseTestSetup):
     def test_login_without_details(self):
         '''Test user login without providing login details'''
         login_data = {'email': '', 'password': ''}
-        response = self.app.post('/auth/login/', data=login_data)
+        response = self.app.post('/v1/auth/login/', data=login_data)
         self.assertEqual(
             response.json, {
                 'message': 'Provide both username and password'})
@@ -48,7 +48,7 @@ class EndpointTests(BaseTestSetup):
         '''Test user registration when email and password are provided'''
         current_users_count = User.query.count()  # Count before reg
         data = {'email': 'kevin123@gmail.com', 'password': 'password123'}
-        response = self.app.post('/auth/register/', data=data)
+        response = self.app.post('/v1/auth/register/', data=data)
         after_registration_count = User.query.count()  # Count after reg
         self.assertEqual(after_registration_count - current_users_count, 1)
         self.assertEqual(response.json, {'message': 'Registered Successfully'})
@@ -56,7 +56,7 @@ class EndpointTests(BaseTestSetup):
     def test_user_register_without_details(self):
         '''Test user registration when email or password are not provided'''
         data = {'email': '', 'password': ''}
-        response = self.app.post('/auth/register/', data=data)
+        response = self.app.post('/v1/auth/register/', data=data)
         self.assertEqual(
             response.json, {
                 'message': 'Provide both email and password'})
@@ -65,7 +65,7 @@ class EndpointTests(BaseTestSetup):
     def test_registration_for_unique_email(self):
         '''Test for unique registration email'''
         responseB = self.app.post(
-            '/auth/register/',
+            '/v1/auth/register/',
             data=self.reg_data)  # Registration with same email address
         responseB_data = responseB.json
         self.assertEqual(
@@ -81,7 +81,7 @@ class EndpointTests(BaseTestSetup):
         not available(Single Bucketlist)
         '''
         response = self.app.get(
-            '/bucketlists/43/',
+            '/v1/bucketlists/43/',
             headers=self.header_content_token)
         self.assertEquals(
             response.json, {
@@ -94,7 +94,7 @@ class EndpointTests(BaseTestSetup):
         id provided is available(Single Bucketlist)
         '''
         response = self.app.get(
-            '/bucketlists/1/',
+            '/v1/bucketlists/1/',
             headers=self.header_content_token)
         self.assertIn('Bucket List', response.json)
         self.assert200(response)
@@ -105,34 +105,33 @@ class EndpointTests(BaseTestSetup):
         user has not created any bucket lists
         '''
         # Delete all bucketlists by user first
-        self.BL.query.filter_by(created_by=g.user_id).delete()
+        self.b_list.query.filter_by(created_by=g.user_id).delete()
         self.database.session.commit()
         response = self.app.get(
-            '/bucketlists/',
+            '/v1/bucketlists/',
             headers=self.header_content_token)
         self.assertEquals(
-            response.json, {
-                'message': 'No Bucket Lists Created'})
+            len(response.json['bucketlists']), 0)
         self.assert200(response)
 
     def test_bucket_list_result_when_they_have_been_created(self):
         '''Test bucketlist results when some have been created'''
         response = self.app.get(
-            '/bucketlists/',
+            '/v1/bucketlists/',
             headers=self.header_content_token)
-        self.assertIn('info', response.json)
+        self.assertTrue(len(response.json['bucketlists']) > 0)
         self.assert200(response)
 
     def test_bucket_lists_when_not_authenticated(self):
         '''Test bucketlists result when no authorization header is provided'''
-        responseB = self.app.get('/bucketlists/')
+        responseB = self.app.get('/v1/bucketlists/')
         self.assert401(responseB, message='Missing Authentication Token')
 
     def test_creation_of_bucket_list_with_no_name(self):
         '''Test for creation of bucket list with no name'''
         data = {'name': ''}
         response = self.app.post(
-            '/bucketlists/',
+            '/v1/bucketlists/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -146,7 +145,7 @@ class EndpointTests(BaseTestSetup):
         that already exists on user list
         '''
         response = self.app.post(
-            '/bucketlists/',
+            '/v1/bucketlists/',
             data=self.bucket_list_form,
             headers=self.header_content_token)
         self.assertEqual(
@@ -158,7 +157,7 @@ class EndpointTests(BaseTestSetup):
         '''Test for creation of new bucket list with valid data'''
         data = {'name': 'BucketList By Brian'}
         response = self.app.post(
-            '/bucketlists/',
+            '/v1/bucketlists/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -168,9 +167,9 @@ class EndpointTests(BaseTestSetup):
 
     def test_update_of_bucket_list_with_no_new_data(self):
         '''Test for update of existing bucket list proving empty data'''
-        data = {'name': ''}
+        data = {'name': '', 'done': False}
         response = self.app.put(
-            '/bucketlists/1/',
+            '/v1/bucketlists/1/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -184,11 +183,11 @@ class EndpointTests(BaseTestSetup):
         providing name that is already in use
         '''
         # Create a new bucket list to test duplicate names
-        data = {'name': 'My New Bucketlist'}
+        data = {'name': 'My New Bucketlist', 'done': False}
         self.app.post(
-            '/bucketlists/', data=data, headers=self.header_content_token)
+            '/v1/bucketlists/', data=data, headers=self.header_content_token)
         response = self.app.put(
-            '/bucketlists/1/',
+            '/v1/bucketlists/1/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(response.json, {'message': 'Name already in use'})
@@ -199,9 +198,9 @@ class EndpointTests(BaseTestSetup):
         Test for update of non existent bucketlist
         (No Bucket list with given ID)
         '''
-        data = {'name': 'My New Bucketlist'}
+        data = {'name': 'My New Bucketlist', 'done': False}
         response = self.app.put(
-            '/bucketlists/23/',
+            '/v1/bucketlists/23/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -211,9 +210,9 @@ class EndpointTests(BaseTestSetup):
 
     def test_update_of_bucket_that_exists(self):
         '''Test for successful update of bucket list'''
-        data = {'name': 'My New Bucketlist'}
+        data = {'name': 'My New Bucketlist', 'done': False}
         response = self.app.put(
-            '/bucketlists/1/',
+            '/v1/bucketlists/1/',
             data=data,
             headers=self.header_content_token)
         self.assertEqual(
@@ -224,7 +223,7 @@ class EndpointTests(BaseTestSetup):
     def test_deletion_of_bucket_list_for_non_existent_id(self):
         '''Test deletion of bucket list with non existent id'''
         response = self.app.delete(
-            '/bucketlists/405/',
+            '/v1/bucketlists/405/',
             headers=self.header_content_token)
         self.assertEqual(
             response.json, {
@@ -234,7 +233,7 @@ class EndpointTests(BaseTestSetup):
     def test_deletion_of_bucket_list_for_existing_id(self):
         '''Test deletion of bucket list with existing id'''
         response = self.app.delete(
-            '/bucketlists/1/',
+            '/v1/bucketlists/1/',
             headers=self.header_content_token)
         self.assertEqual(
             response.json, {
@@ -244,14 +243,14 @@ class EndpointTests(BaseTestSetup):
     def test_retrieve_bucket_list_items(self):
         '''Test for creation of a new item in a bucket list'''
         response = self.app.post(
-            '/bucketlists/id/items/',
+            '/v1/bucketlists/id/items/',
             headers=self.header_content_token)
         self.assert200(response, message='Failed to create bucket list item')
 
     def test_create_token(self):
         '''Test if a token was created for logged in user'''
         login_response = self.app.post(
-            '/auth/login/', data=self.reg_data)  # Login User
+            '/v1/auth/login/', data=self.reg_data)  # Login User
         self.assertIn(
             'token',
             login_response.json,
@@ -261,51 +260,50 @@ class EndpointTests(BaseTestSetup):
         '''Retrieve bucketlist by name that exists'''
         bucket_list_form = {'name': 'Bucketlist one'}
         self.app.post(
-            '/bucketlists/',
+            '/v1/bucketlists/',
             data=bucket_list_form,
             headers=self.header_content_token)
         response = self.app.get(
-            '/bucketlists/?q=one',
+            '/v1/bucketlists/?q=one',
             headers=self.header_content_token)
-        self.assertIn('info', response.json)
+        self.assertTrue(len(response.json['bucketlists']) > 0)
         self.assert200(response)
 
     def test_retrieve_bucketlist_with_nonexisting_name(self):
         '''Retrieve bucketlist by name that does not exists'''
         response = self.app.get(
-            '/bucketlists/?q=BucketlistMissing',
+            '/v1/bucketlists/?q=BucketlistMissing',
             headers=self.header_content_token)
-        self.assertEqual(
-            {'message': 'No Bucket Lists Containing that word'}, response.json)
+        self.assertEqual(len(response.json['bucketlists']), 0)
         self.assert200(response)
 
     def test_if_bucketlist_limit_is_invalid(self):
         '''Test if number of records to be returned is not a number'''
         response = self.app.get(
-            '/bucketlists/?limit=invalid',
+            '/v1/bucketlists/?limit=invalid',
             headers=self.header_content_token)
         self.assertEqual(
-            {'message': 'Limit of records must be a number'}, response.json)
+            {'message': 'Limit must be a number'}, response.json)
         self.assert200(response)
 
     def test_update_of_bucketlist_without_id(self):
         '''Test for editting a bucketlist without providing id'''
         response = self.app.put(
-            '/bucketlists/', headers=self.header_content_token)
+            '/v1/bucketlists/', headers=self.header_content_token)
         self.assertEqual(
             response.json, {'message': 'Provide Id of Bucketlist to Edit'})
 
     def test_deletion_of_bucketlist_without_id(self):
         '''Try to delete bucketlist withour providing an Id'''
         response = self.app.delete(
-            '/bucketlists/', headers=self.header_content_token)
+            '/v1/bucketlists/', headers=self.header_content_token)
         self.assertEqual(
             {'message': 'Provide Id of bucket list to delete'}, response.json)
 
     def test_creation_of_bucketlist_with_id(self):
         '''Test creation of bucketlist with an Id provided'''
         response = self.app.post(
-            '/bucketlists/1/', headers=self.header_content_token)
+            '/v1/bucketlists/1/', headers=self.header_content_token)
         self.assertEqual(
             {'message': 'New bucketlist creation does not require an ID'},
             response.json)

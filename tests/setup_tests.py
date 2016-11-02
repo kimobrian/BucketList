@@ -2,7 +2,6 @@ from manage import app, db
 from flask_testing import TestCase
 from app.models import BucketList
 from config import config_settings
-import os
 
 
 class BaseTestSetup(TestCase):
@@ -21,12 +20,12 @@ class BaseTestSetup(TestCase):
         # Register Test Users
         self.reg_data = {'email': 'brian@gmail.com', 'password': 'password123'}
         self.reg_response = self.app.post(
-            '/auth/register/',
+            '/v1/auth/register/',
             data=self.reg_data)  # Response when user Registers
 
         # Generate token to be used for testing routes that require login
         login_response = self.app.post(
-            '/auth/login/', data=self.reg_data)  # Login User
+            '/v1/auth/login/', data=self.reg_data)  # Login User
         login_response_message = login_response.json
         self.header_content_token = {
             'Authorization': login_response_message['token']}
@@ -34,7 +33,7 @@ class BaseTestSetup(TestCase):
         # Create bucketlist to be used for tests
         self.bucket_list_form = {'name': 'My Bucketlist'}
         self.bucket_list_response = self.app.post(
-            '/bucketlists/',
+            '/v1/bucketlists/',
             data=self.bucket_list_form,
             headers=self.header_content_token)
 
@@ -42,5 +41,3 @@ class BaseTestSetup(TestCase):
         """Clearing all DB contents"""
         db.session.remove()
         db.drop_all()
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        os.remove(dir_path + '/testdb.sqlite')

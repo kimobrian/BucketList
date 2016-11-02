@@ -135,13 +135,13 @@ def bucketlists_details(bucket_list):
     return bucketlist_details
 
 
-def validate_limit(limit):
+def validate_input(value, query_type):
     try:
-        limit = int(limit)
+        value = int(value)
         return True
     except ValueError:
         response = jsonify(
-            {'message': 'Limit of records must be a number'})
+            {'message': query_type + ' must be a number'})
         response.status_code = 200
         return response
 
@@ -153,90 +153,56 @@ class BucketListsAction(Resource):
     def get(self, bucketlist_id=None):
         '''List all the created bucket lists by a user'''
         '''Get single bucket list if Id is provided'''
-        query_string = request.args.to_dict()
-        limit = query_string.get('limit', 20)
-        page = query_string.get('page', 1)
-        limit_check = validate_limit(limit)
-        if limit_check is not True:
-            return limit_check
-
-
-
-        # bucketlists_page = BucketList.query.filter_by(created_by=g.user).paginate(page=page, per_page=limit, error_out=False)
-        # total_pages = bucketlists_page.pages
-        # next_item = bucketlists_page.has_next
-        # previous_item = bucketlists_page.has_prev
-        # if next_item:
-        #     next_page = str(request.url_root) + 'api/v1/bucketlists?limit=' + str(limit) + '&page=' + str(page + 1)
-        # else:
-        #     next_page = 'None'
-        # if previous_item:
-        #     previous_page = request.url_root + 'api/v1/bucketlists?limit=' + str(limit) + '&page=' + str(page - 1)
-        # else:
-        #     previous_page = 'None'
-        # bucketlists = bucketlists_page.items
-        # response = jsonify{'bucketlists': marshal(bucketlists, bucketlist_serializer),
-        #             'next_item': next_item,
-        #             'pages': total,
-        #             'previous_page': previous_page,
-        #             'next_page': next_page
-        #             }
-        # response.status_code = 200
-        # return response
-
-
-
-
-
 
         if bucketlist_id is None:
+            query_string = request.args.to_dict()
+            limit = query_string.get('limit', 5)
+            page = query_string.get('page', 1)
+            limit_check = validate_input(limit, 'Limit')
+            if limit_check is not True:
+                return limit_check
+            limit = int(limit)
+            page_check = validate_input(page, 'Page')
+            if page_check is not True:
+                return page_check
+            page = int(page)
+
             if 'q' in query_string:
                 bucketlist_name = query_string.get('q')
                 bucket_lists = BucketList.query.filter(BucketList.name.ilike(
                     '%' + bucketlist_name + '%')).filter_by(
                     created_by=g.user_id).paginate(page, limit, False)
+                if len(bucket_lists.items) < 0:
+                    response = jsonify(
+                        {'message': 'No Bucket Lists Containing that word'})
+                    response.status_code = 200
+                    return response
             else:
                 bucket_lists = BucketList.query.filter_by(
                     created_by=g.user_id).paginate(page, limit, False)
-
-
-            print(len(bucket_lists))
+            all_bucket_lists = []
+            if len(bucket_lists.items) > 0:
+                for bl in bucket_lists.items:
+                    bl_details = bucketlists_details(bl)
+                    all_bucket_lists.append(bl_details)
             total_pages = bucket_lists.pages
             next_item = bucket_lists.has_next
-            previous_item = bucketlists.has_prev
+            previous_item = bucket_lists.has_prev
             if next_item:
-                next_page = str(request.url_root) + 'api/v1/bucketlists?limit=' + str(limit) + '&page=' + str(page + 1)
+                next_page = str(request.url_root) + 'v1/bucketlists?limit=' + \
+                    str(limit) + '&page=' + str(page + 1)
             else:
                 next_page = 'None'
             if previous_item:
-                previous_page = request.url_root + 'api/v1/bucketlists?limit=' + str(limit) + '&page=' + str(page - 1)
+                previous_page = request.url_root + 'v1/bucketlists?limit=' + \
+                    str(limit) + '&page=' + str(page - 1)
             else:
                 previous_page = 'None'
-            bucketlists = bucket_lists.items
-            response = jsonify({'bucketlists': bucketlists, 'next_item': next_item, 'pages': total, 'previous_page': previous_page,'next_page': next_page})
+            response = jsonify({'bucketlists': all_bucket_lists,
+                                'pages': total_pages, 'previous': previous_page,
+                                'next': next_page})
             response.status_code = 200
-            # return response
-
-
-            # if len(bucket_lists) > 0:
-            #     all_bucket_lists = {}
-            #     for bucket_list in bucket_lists:
-            #         bl_details = bucketlists_details(bucket_list)
-            #         all_bucket_lists[bucket_list.id] = bl_details
-            #     response = jsonify({'info': all_bucket_lists})
-            #     response.status_code = 200
-            #     return response
-            # else:
-            #     if 'q' in query_string:
-            #         response = jsonify(
-            #             {'message': 'No Bucket Lists Containing that word'})
-            #         response.status_code = 200
-            #         return response
-            #     else:
-            #         response = jsonify(
-            #             {'message': 'No Bucket Lists Created'})
-            #         response.status_code = 200
-            #         return response
+            return response
         else:
             try:
                 bucket_list = BucketList.query.filter_by(
@@ -403,6 +369,13 @@ class BucketListItemAction(Resource):
             response.status_code = 200
             return response
         data = request.form['name']
+        done = request.form['done']
+        if not done:
+            done = False
+        if done.lower() not in ['true', 'false']:
+            response = jsonify({'message': 'Done can either be True or False'})
+            response.status_code = 200
+            return response
         if not data:
             response = jsonify({'message': 'Please provide update info'})
             response.status_code = 200
@@ -424,7 +397,7 @@ class BucketListItemAction(Resource):
                     BucketList.query.filter_by(
                         id=bucketlist_id).one()
                     BucketListItem.query.filter_by(id=item_id).update(
-                        {'name': data})
+                        {'name': data, 'done': done})
                     try:
                         db.session.commit()
                         response = jsonify(

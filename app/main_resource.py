@@ -5,6 +5,7 @@ from app.models import User
 from datetime import datetime, timedelta
 import jwt
 from flask import jsonify, g
+from sqlalchemy.orm.exc import NoResultFound
 
 
 encryption_secret = 'gd46.;[/]9j$%^gk)-jt+4'
@@ -83,10 +84,10 @@ class Login(Resource):
                 response.status_code = 200
                 return response
             else:
-                response = jsonify({'message': 'Failed Logged In'})
+                response = jsonify({'message': 'Failed To Login'})
                 response.status_code = 401
                 return response
-        except Exception:
+        except NoResultFound:
             db.session.rollback()
             response = jsonify(
                 {'message': 'Invalid email, password combination'})

@@ -43,6 +43,7 @@ SQLALCHEMY_DATABASE_URI = db_uri
 ```
 In TestingConfig class, set `TESTING = True`
 
+
 Setup the database with the following commands:
 
 ```

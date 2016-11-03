@@ -3,6 +3,7 @@ from app.models import BucketList, BucketListItem
 from flask import jsonify
 from flask_restful import Resource, request
 from main_resource import login_required
+from sqlalchemy.orm.exc import NoResultFound
 
 
 class BucketListItemAction(Resource):
@@ -41,11 +42,12 @@ class BucketListItemAction(Resource):
                         response.status_code = 200
                         return response
                     except Exception:
+                        db.session.rollback()
                         response = jsonify(
                             {'message': 'Error Occurred Saving Item'})
                         response.status_code = 200
                         return response
-        except Exception:
+        except NoResultFound:
             response = jsonify({'message': 'Missing bucketlist ID'})
             response.status_code = 200
             return response
@@ -81,7 +83,7 @@ class BucketListItemAction(Resource):
                      'Bucket List Item with that description exists'})
                 response.status_code = 200
                 return response
-            except Exception:
+            except NoResultFound:
                 try:
                     # Check bucketlist ID
                     BucketList.query.filter_by(
@@ -106,7 +108,7 @@ class BucketListItemAction(Resource):
                          'The Item does not belong to any known bucketlist'})
                     response.status_code = 200
                     return response
-        except Exception:
+        except NoResultFound:
             response = jsonify(
                 {'message': 'No bucket list item with that Id exists'})
             response.status_code = 200
@@ -124,7 +126,7 @@ class BucketListItemAction(Resource):
             # Check list ID
             BucketList.query.filter_by(
                 id=bucketlist_id).one()
-        except Exception:
+        except NoResultFound:
             db.session.commit()
             response = jsonify({'message': 'No bucketlist with given ID'})
             response.status_code = 200
@@ -141,7 +143,7 @@ class BucketListItemAction(Resource):
                     {'message': 'BucketList Deleted Successfully'})
                 response.status_code = 200
                 return response
-        except Exception:
+        except NoResultFound:
             response = jsonify(
                 {'message': 'No bucket list item with that Id exists'})
             response.status_code = 200

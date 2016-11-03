@@ -4,6 +4,7 @@ from flask import g, jsonify
 from flask_restful import Resource, request
 from helpers import validate_input, bucketlists_details
 from main_resource import login_required
+from sqlalchemy.orm.exc import NoResultFound
 
 
 class BucketListsAction(Resource):
@@ -72,7 +73,7 @@ class BucketListsAction(Resource):
                 response = jsonify({'Bucket List': bl_details})
                 response.status_code = 200
                 return response
-            except Exception:
+            except NoResultFound:
                 response = jsonify({'message': 'No Bucket List with that ID'})
                 response.status_code = 200
                 return response
@@ -97,7 +98,7 @@ class BucketListsAction(Resource):
             response = jsonify({'message': 'Bucketlist name already exists'})
             response.status_code = 400
             return response
-        except Exception:  # No Result Found
+        except NoResultFound:  # No Result Found
             bucketlist = BucketList()
             bucketlist.name = name
             bucketlist.created_by = g.user_id
@@ -109,6 +110,7 @@ class BucketListsAction(Resource):
                 response.status_code = 200
                 return response
             except Exception:
+                db.session.rollback()
                 response = jsonify(
                     {'message': 'Error Occurred Saving Bucketlist'})
                 response.status_code = 200
@@ -134,7 +136,7 @@ class BucketListsAction(Resource):
             response = jsonify({'message': 'Name already in use'})
             response.status_code = 200
             return response
-        except Exception:  # No bucketlist with the name found(Safe update)
+        except NoResultFound:  # No bucketlist with the name found(Safe update)
             updated_rows = BucketList.query.filter_by(
                 id=bucketlist_id, created_by=g.user_id).update(
                 {'name': new_data})
@@ -150,6 +152,7 @@ class BucketListsAction(Resource):
                     response.status_code = 200
                     return response
                 except Exception:
+                    db.session.rollback()
                     response = jsonify(
                         {'message': 'Error Occurred Updating Bucket List'})
                     response.status_code = 200

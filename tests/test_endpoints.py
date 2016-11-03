@@ -240,13 +240,6 @@ class EndpointTests(BaseTestSetup):
                 'message': 'BucketList Deleted Successfully'})
         self.assert200(response)
 
-    def test_retrieve_bucket_list_items(self):
-        '''Test for creation of a new item in a bucket list'''
-        response = self.app.post(
-            '/v1/bucketlists/id/items/',
-            headers=self.header_content_token)
-        self.assert200(response, message='Failed to create bucket list item')
-
     def test_create_token(self):
         '''Test if a token was created for logged in user'''
         login_response = self.app.post(

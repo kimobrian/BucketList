@@ -1,6 +1,6 @@
 from setup_tests import BaseTestSetup
 from app.models import BucketListItem
-from app.resources import validate_input
+from app.helpers import validate_input
 
 
 class TestModels(BaseTestSetup):

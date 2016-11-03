@@ -41,3 +41,10 @@ class BaseTestSetup(TestCase):
         """Clearing all DB contents"""
         db.session.remove()
         db.drop_all()
+        '''
+        Only applies to sqlite DB
+        Uncomment the following lines for efficient testing.
+        i.e Drop database to isolate tests
+        '''
+        # dir_path = os.path.dirname(os.path.realpath(__file__))
+        # os.remove(dir_path + '/testdb.sqlite')

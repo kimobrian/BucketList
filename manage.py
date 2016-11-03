@@ -1,8 +1,9 @@
+from app import app, db
+from app.main_resource import Homepage, Login, Register
+from app.bucketlist_resource import BucketListsAction
+from app.bucketlist_item_resource import BucketListItemAction
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-from app import app, db
-from app.resources import Homepage, Login, Register, BucketListsAction, \
-    BucketListItemAction
 from flask_restful import Api
 
 manager = Manager(app)

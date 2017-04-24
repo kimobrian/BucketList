@@ -5,3 +5,5 @@ machine:
 test:
   override:
     - nosetests --with-coverage
+  post:
+    - coveralls

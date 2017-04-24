@@ -4,4 +4,4 @@ machine:
 
 test:
   override:
-    - nosetests -s -v
+    - nosetests --with-coverage

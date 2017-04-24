@@ -4,5 +4,5 @@
 [![Coverage Status](https://coveralls.io/repos/github/kimobrian/BucketList/badge.svg?branch=ci-integration)](https://coveralls.io/github/kimobrian/BucketList?branch=ci-integration)
 [![Code Health](https://landscape.io/github/kimobrian/BucketList/ci-integration/landscape.svg?style=flat)](https://landscape.io/github/kimobrian/BucketList/ci-integration)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/ebddd6754a7c4f7ca0cb21fe86d8af4f)](https://www.codacy.com/app/brian-kimokoti/BucketList?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=kimobrian/BucketList&amp;utm_campaign=Badge_Grade)
-[![codecov](https://codecov.io/gh/kimobrian/BucketList/branch/master/graph/badge.svg)](https://codecov.io/gh/kimobrian/BucketList)
+[![codecov](https://codecov.io/gh/kimobrian/BucketList/branch/ci-integration/graph/badge.svg)](https://codecov.io/gh/kimobrian/BucketList)
 
